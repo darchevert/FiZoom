@@ -1,6 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Animated, { ZoomIn } from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import { PlayingCard as CardData, RANK_LABEL, isRedSuit } from '../lib/deck';
 import { pileOffset, pileRotation } from '../lib/cardMotion';
 import { radius, theme } from '../lib/theme';
@@ -23,25 +22,64 @@ export function DiscardPile({ cards }: { cards: CardData[] }) {
             const offset = pileOffset(card.id);
             const isTop = i === visible.length - 1;
             return (
-              <Animated.View
+              <PileCard
                 key={card.id}
-                entering={isTop ? ZoomIn.duration(260) : undefined}
-                style={[
-                  styles.slot,
-                  {
-                    transform: [{ translateX: offset.x }, { translateY: offset.y }, { rotate: `${angle}deg` }],
-                    zIndex: i,
-                  },
-                ]}
-              >
-                <MiniCardFace card={card} />
-              </Animated.View>
+                card={card}
+                angle={angle}
+                offset={offset}
+                animateIn={isTop}
+                zIndex={i}
+              />
             );
           })
         )}
       </View>
       <Text style={styles.label}>Défausse · {cards.length}</Text>
     </View>
+  );
+}
+
+function PileCard({
+  card,
+  angle,
+  offset,
+  animateIn,
+  zIndex,
+}: {
+  card: CardData;
+  angle: number;
+  offset: { x: number; y: number };
+  animateIn: boolean;
+  zIndex: number;
+}) {
+  const progress = useRef(new Animated.Value(animateIn ? 0 : 1)).current;
+
+  useEffect(() => {
+    if (!animateIn) return;
+    Animated.spring(progress, { toValue: 1, useNativeDriver: true, friction: 6, tension: 80 }).start();
+  }, [card.id]);
+
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] });
+  const opacity = progress;
+
+  return (
+    <Animated.View
+      style={[
+        styles.slot,
+        {
+          zIndex,
+          opacity,
+          transform: [
+            { translateX: offset.x },
+            { translateY: offset.y },
+            { rotate: `${angle}deg` },
+            { scale },
+          ],
+        },
+      ]}
+    >
+      <MiniCardFace card={card} />
+    </Animated.View>
   );
 }
 
