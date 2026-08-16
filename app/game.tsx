@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { AddPlayerModal } from '../components/AddPlayerModal';
 import { Button } from '../components/Button';
 import { CardTrackerModal } from '../components/CardTracker';
 import { DiscardPile } from '../components/DiscardPile';
@@ -11,8 +12,9 @@ import { useApp } from '../lib/state';
 import { spacing, theme } from '../lib/theme';
 
 export default function Game() {
-  const { session, activeDeck, settings, drawCard, nextTurn, clearSession } = useApp();
+  const { session, activeDeck, settings, drawCard, nextTurn, clearSession, addPlayerToSession } = useApp();
   const [trackerOpen, setTrackerOpen] = useState(false);
+  const [addPlayerOpen, setAddPlayerOpen] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -54,6 +56,9 @@ export default function Game() {
           <Pressable onPress={() => setTrackerOpen(true)} hitSlop={8} style={{ marginTop: spacing.xs }}>
             <Text style={{ color: theme.gold, fontSize: 13, fontWeight: '700' }}>Cartes piochées →</Text>
           </Pressable>
+          <Pressable onPress={() => setAddPlayerOpen(true)} hitSlop={8} style={{ marginTop: spacing.xs }}>
+            <Text style={{ color: theme.gold, fontSize: 13, fontWeight: '700' }}>+ Ajouter un joueur</Text>
+          </Pressable>
         </View>
         <DiscardPile cards={pileCards} />
       </View>
@@ -63,7 +68,13 @@ export default function Game() {
           Au tour de {currentPlayer}
         </Text>
 
-        <PlayingCardFace card={session.current} />
+        {session.revealed ? (
+          <PlayingCardFace card={session.current} />
+        ) : (
+          <Pressable onPress={onDraw} disabled={session.deck.length === 0}>
+            <PlayingCardFace card={null} />
+          </Pressable>
+        )}
 
         {session.current && session.revealed && (
           <View style={{ alignItems: 'center', gap: spacing.sm, maxWidth: 320 }}>
@@ -94,6 +105,7 @@ export default function Game() {
       </View>
 
       <CardTrackerModal visible={trackerOpen} onClose={() => setTrackerOpen(false)} drawn={session.drawn} />
+      <AddPlayerModal visible={addPlayerOpen} onClose={() => setAddPlayerOpen(false)} onAdd={addPlayerToSession} />
     </Screen>
   );
 }

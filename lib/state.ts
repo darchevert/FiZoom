@@ -69,6 +69,7 @@ type Action =
   | { type: 'toggleSound' }
   | { type: 'toggleSoftMode' }
   | { type: 'startGame' }
+  | { type: 'addPlayerToSession'; name: string }
   | { type: 'drawCard' }
   | { type: 'nextTurn' }
   | { type: 'endGame' }
@@ -126,6 +127,12 @@ function reducer(state: AppState, action: Action): AppState {
           finished: false,
         },
       };
+    case 'addPlayerToSession': {
+      if (!state.session) return state;
+      const name = action.name.trim();
+      if (!name) return state;
+      return { ...state, session: { ...state.session, players: [...state.session.players, name] } };
+    }
     case 'drawCard': {
       if (!state.session || state.session.deck.length === 0) return state;
       const [card, ...rest] = state.session.deck;
@@ -173,6 +180,7 @@ interface AppContextValue extends AppState {
   toggleSound: () => void;
   toggleSoftMode: () => void;
   startGame: () => void;
+  addPlayerToSession: (name: string) => void;
   drawCard: () => void;
   nextTurn: () => void;
   endGame: () => void;
@@ -233,6 +241,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleSound: () => dispatch({ type: 'toggleSound' }),
       toggleSoftMode: () => dispatch({ type: 'toggleSoftMode' }),
       startGame: () => dispatch({ type: 'startGame' }),
+      addPlayerToSession: (name) => dispatch({ type: 'addPlayerToSession', name }),
       drawCard: () => dispatch({ type: 'drawCard' }),
       nextTurn: () => dispatch({ type: 'nextTurn' }),
       endGame: () => dispatch({ type: 'endGame' }),
