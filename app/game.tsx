@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '../components/Button';
+import { DiscardPile } from '../components/DiscardPile';
 import { PlayingCardFace } from '../components/PlayingCard';
 import { Screen } from '../components/Screen';
 import { gageFor, triggersReplay } from '../lib/deck';
@@ -38,13 +39,18 @@ export default function Game() {
     router.replace('/home');
   };
 
+  const pileCards = session.current ? session.drawn.slice(0, -1) : session.drawn;
+
   return (
     <Screen>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ color: theme.inkSoft, fontSize: 13 }}>{activeDeck.name}</Text>
-        <Text style={{ color: theme.inkSoft, fontSize: 13, fontVariant: ['tabular-nums'] }}>
-          {session.deck.length} cartes restantes
-        </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View>
+          <Text style={{ color: theme.inkSoft, fontSize: 13 }}>{activeDeck.name}</Text>
+          <Text style={{ color: theme.inkSoft, fontSize: 13, fontVariant: ['tabular-nums'] }}>
+            {session.deck.length} cartes restantes
+          </Text>
+        </View>
+        <DiscardPile cards={pileCards} />
       </View>
 
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>

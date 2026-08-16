@@ -1,23 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { PlayingCard as CardData, RANK_LABEL, isRedSuit } from '../lib/deck';
 import { radius, theme } from '../lib/theme';
 
 export function PlayingCardFace({ card, size = 220 }: { card: CardData | null; size?: number }) {
-  const flip = useRef(new Animated.Value(0)).current;
+  const flip = useSharedValue(0);
 
   useEffect(() => {
-    flip.setValue(0);
-    Animated.timing(flip, {
-      toValue: 1,
-      duration: 380,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
+    flip.value = 0;
+    flip.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
   }, [card?.id]);
 
-  const rotateY = flip.interpolate({ inputRange: [0, 1], outputRange: ['90deg', '0deg'] });
-  const opacity = flip.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0, 1] });
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: flip.value < 0.5 ? 0 : 1,
+    transform: [{ perspective: 800 }, { rotateY: `${90 - flip.value * 90}deg` }],
+  }));
 
   if (!card) {
     return (
@@ -30,12 +28,7 @@ export function PlayingCardFace({ card, size = 220 }: { card: CardData | null; s
   const red = isRedSuit(card.suit);
 
   return (
-    <Animated.View
-      style={[
-        styles.card,
-        { width: size, height: size * 1.4, transform: [{ perspective: 800 }, { rotateY }], opacity },
-      ]}
-    >
+    <Animated.View style={[styles.card, { width: size, height: size * 1.4 }, animatedStyle]}>
       <Text style={[styles.corner, red ? styles.red : styles.black]}>{RANK_LABEL[card.rank]}</Text>
       <Text style={[styles.suitCenter, red ? styles.red : styles.black]}>{card.suit}</Text>
       <Text style={[styles.corner, styles.cornerBottom, red ? styles.red : styles.black]}>
