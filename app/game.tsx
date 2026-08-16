@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { Button } from '../components/Button';
+import { CardTrackerModal } from '../components/CardTracker';
 import { DiscardPile } from '../components/DiscardPile';
 import { PlayingCardFace } from '../components/PlayingCard';
 import { Screen } from '../components/Screen';
@@ -11,6 +12,7 @@ import { spacing, theme } from '../lib/theme';
 
 export default function Game() {
   const { session, activeDeck, settings, drawCard, nextTurn, clearSession } = useApp();
+  const [trackerOpen, setTrackerOpen] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -49,6 +51,9 @@ export default function Game() {
           <Text style={{ color: theme.inkSoft, fontSize: 13, fontVariant: ['tabular-nums'] }}>
             {session.deck.length} cartes restantes
           </Text>
+          <Pressable onPress={() => setTrackerOpen(true)} hitSlop={8} style={{ marginTop: spacing.xs }}>
+            <Text style={{ color: theme.gold, fontSize: 13, fontWeight: '700' }}>Cartes piochées →</Text>
+          </Pressable>
         </View>
         <DiscardPile cards={pileCards} />
       </View>
@@ -87,6 +92,8 @@ export default function Game() {
         )}
         <Button label="Quitter la partie" variant="ghost" onPress={onQuit} />
       </View>
+
+      <CardTrackerModal visible={trackerOpen} onClose={() => setTrackerOpen(false)} drawn={session.drawn} />
     </Screen>
   );
 }
